@@ -2,6 +2,7 @@ package icu.zawarudo.fishloaf;
 
 import cn.zhouyafeng.itchat4j.Wechat;
 import cn.zhouyafeng.itchat4j.face.IMsgHandlerFace;
+import icu.zawarudo.fishloaf.handler.MessageHandler;
 
 import java.io.File;
 
@@ -11,8 +12,8 @@ public class Boot {
         File f = new File(qrPath);
         if (!f.exists()) {
             f.mkdirs();
-            f.deleteOnExit();
         }
+        f.deleteOnExit();
         IMsgHandlerFace msgHandler = new MessageHandler();
         Wechat wechat = new Wechat(msgHandler, f.getAbsolutePath());
         wechat.start();
