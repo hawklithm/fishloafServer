@@ -2,6 +2,7 @@ package icu.zawarudo.fishloaf.server;
 
 import icu.zawarudo.fishloaf.commons.Constants;
 import icu.zawarudo.fishloaf.commons.ProtocolUtils;
+import icu.zawarudo.fishloaf.handler.TCPDataHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,6 +14,12 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @author zhb
  */
 public class ServerHandler extends ChannelInboundHandlerAdapter {
+
+    private TCPDataHandler handler;
+
+    public ServerHandler(TCPDataHandler handler) {
+        this.handler = handler;
+    }
 
     // 读取数据
     @Override
@@ -39,7 +46,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         bb.readBytes(reqByte);
         String reqStr = new String(reqByte, Constants.charset);
         System.err.println("server 接收到客户端的请求： " + reqStr);
-        String respStr = new StringBuilder("来自服务器的响应").append(reqStr).append("$_").toString();
+        String respStr = handler.onMessage(reqStr);
 
         byte[] data = ProtocolUtils.encode(respStr);
 

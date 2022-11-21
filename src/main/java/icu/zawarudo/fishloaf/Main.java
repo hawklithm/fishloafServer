@@ -12,7 +12,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 public class Main {
-    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
+    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException, InterruptedException {
         InputStream itchat4jJar = Main.class.getClassLoader().getResourceAsStream("libs/itchat4j-1.1.0-jar-with-dependencies.jar");
         String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "fshloafServer" + File.separator;
         File tmpDirFile = new File(tmpDir);

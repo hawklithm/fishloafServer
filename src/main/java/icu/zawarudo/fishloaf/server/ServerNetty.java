@@ -1,6 +1,7 @@
 package icu.zawarudo.fishloaf.server;
 
 import icu.zawarudo.fishloaf.commons.Constants;
+import icu.zawarudo.fishloaf.handler.TCPDataHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -21,8 +22,11 @@ public class ServerNetty {
 
     private int port;
 
-    public ServerNetty(int port) {
+    private TCPDataHandler handler;
+
+    public ServerNetty(int port, TCPDataHandler handler) {
         this.port = port;
+        this.handler = handler;
     }
 
     // netty 服务端启动
@@ -53,7 +57,7 @@ public class ServerNetty {
                             // 网络超时时间
 //                      socketChannel.pipeline().addLast(new ReadTimeoutHandler(5));
                             // 处理接收到的请求
-                            socketChannel.pipeline().addLast(new ServerHandler()); // 这里相当于过滤器，可以配置多个
+                            socketChannel.pipeline().addLast(new ServerHandler(handler)); // 这里相当于过滤器，可以配置多个
                         }
                     });
 
@@ -76,7 +80,7 @@ public class ServerNetty {
 
     // 开启netty服务线程
     public static void main(String[] args) throws InterruptedException {
-        new ServerNetty(Constants.serverSocketPort).action();
+        new ServerNetty(Constants.serverSocketPort, null).action();
     }
 
     /**
