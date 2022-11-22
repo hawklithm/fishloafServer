@@ -24,6 +24,8 @@ public class ServerNetty {
 
     private TCPDataHandler handler;
 
+    private ServerHandler serverHandler;
+
     public ServerNetty(int port, TCPDataHandler handler) {
         this.port = port;
         this.handler = handler;
@@ -36,6 +38,8 @@ public class ServerNetty {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         // 用来处理已经被接收的连接，一旦bossGroup接收到连接，就会把连接信息注册到workerGroup上
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+        serverHandler = new ServerHandler(handler);
 
         try {
             // nio服务的启动类
@@ -57,7 +61,7 @@ public class ServerNetty {
                             // 网络超时时间
 //                      socketChannel.pipeline().addLast(new ReadTimeoutHandler(5));
                             // 处理接收到的请求
-                            socketChannel.pipeline().addLast(new ServerHandler(handler)); // 这里相当于过滤器，可以配置多个
+                            socketChannel.pipeline().addLast(serverHandler); // 这里相当于过滤器，可以配置多个
                         }
                     });
 
@@ -77,11 +81,11 @@ public class ServerNetty {
         }
     }
 
-
-    // 开启netty服务线程
-    public static void main(String[] args) throws InterruptedException {
-        new ServerNetty(Constants.serverSocketPort, null).action();
+    public void writeToClient(String message) {
+        serverHandler.writeToClient(message);
     }
+
+
 
     /**
      *

@@ -5,17 +5,25 @@ import icu.zawarudo.fishloaf.commons.ProtocolUtils;
 import icu.zawarudo.fishloaf.handler.TCPDataHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 /**
  * 处理某个客户端的请求
  *
- * @author zhb
+ * @author pmx
  */
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private TCPDataHandler handler;
+
+    // 用于记录和管理所有客户端的channel
+    public static ChannelGroup users = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public ServerHandler(TCPDataHandler handler) {
         this.handler = handler;
@@ -28,6 +36,15 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         simpleRead(ctx, msg);
         // 有分隔符处理信息
 //      Delimiterread(ctx, msg);
+    }
+
+    public void writeToClient(String message) {
+        byte[] bytes = ProtocolUtils.encode(message);
+        for (Channel c : users) {
+            ByteBuf byteBuf = Unpooled.copiedBuffer(bytes);
+            c.writeAndFlush(byteBuf);
+        }
+
     }
 
 
@@ -82,8 +99,31 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         System.err.println("server 读取数据出现异常");
+        cause.printStackTrace();
+        // 发生异常之后关键channel。随后从ChannelGroup 中移除
+        ctx.channel().close();
+        users.remove(ctx.channel());
         ctx.close();
     }
+
+    /**
+     * 当客户连接服务端之后（打开链接） 获取客户端的channel，并且放到ChannelGroup中去进行管理
+     */
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        users.add(ctx.channel());
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+
+        String channelId = ctx.channel().id().asLongText();
+        System.out.println("客户端被移除，channelId为：" + channelId);
+
+        // 当触发handlerRemoved，ChannelGroup会自动移除对应的客户端channel
+        users.remove(ctx.channel());
+    }
+
 
 //    /**
 //     * 将请求信息直接转成对象
