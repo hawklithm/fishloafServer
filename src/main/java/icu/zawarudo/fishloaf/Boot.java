@@ -15,7 +15,7 @@ public class Boot {
             f.mkdirs();
         }
         f.deleteOnExit();
-        IMsgHandlerFace msgHandler = new MessageHandler(Constants.serverSocketPort);
+        IMsgHandlerFace msgHandler = new MessageHandler(Constants.serverSocketPort, Constants.pushNotificationPort);
         Wechat wechat = new Wechat(msgHandler, f.getAbsolutePath());
         wechat.start();
     }

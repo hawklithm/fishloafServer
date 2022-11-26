@@ -1,17 +1,10 @@
 package icu.zawarudo.fishloaf.server;
 
-import icu.zawarudo.fishloaf.commons.Constants;
 import icu.zawarudo.fishloaf.commons.ProtocolUtils;
 import icu.zawarudo.fishloaf.handler.TCPDataHandler;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.CharsetUtil;
-import io.netty.util.concurrent.GlobalEventExecutor;
 
 /**
  * 处理某个客户端的请求
@@ -23,7 +16,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     private TCPDataHandler handler;
 
     // 用于记录和管理所有客户端的channel
-    public static ChannelGroup users = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+//    public static ChannelGroup users = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public ServerHandler(TCPDataHandler handler) {
         this.handler = handler;
@@ -38,14 +31,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 //      Delimiterread(ctx, msg);
     }
 
-    public void writeToClient(String message) {
-        byte[] bytes = ProtocolUtils.encode(message);
-        for (Channel c : users) {
-            ByteBuf byteBuf = Unpooled.copiedBuffer(bytes);
-            c.writeAndFlush(byteBuf);
-        }
-
-    }
+//    public void writeToClient(String message) {
+//        byte[] bytes = ProtocolUtils.encode(message);
+//        for (Channel c : users) {
+//            ByteBuf byteBuf = Unpooled.copiedBuffer(bytes);
+//            c.writeAndFlush(byteBuf);
+//        }
+//
+//    }
 
 
     /**
@@ -56,17 +49,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      */
     public void simpleRead(ChannelHandlerContext ctx, Object msg) {
 
-        ByteBuf bb = (ByteBuf) msg;
-        // 创建一个和buf同等长度的字节数组
-        byte[] reqByte = new byte[bb.readableBytes()];
-        // 将buf中的数据读取到数组中
-        bb.readBytes(reqByte);
-        String reqStr = new String(reqByte, Constants.charset);
-        System.err.println("server 接收到客户端的请求： " + reqStr);
+        String reqStr = (String) msg;
+//        // 创建一个和buf同等长度的字节数组
+//        byte[] reqByte = new byte[bb.readableBytes()];
+//        // 将buf中的数据读取到数组中
+//        bb.readBytes(reqByte);
+//        String reqStr = new String(reqByte, Constants.charset);
         String respStr = handler.onMessage(reqStr);
-
         byte[] data = ProtocolUtils.encode(respStr);
-
         // 返回给客户端响应                                                                                                                                                       和客户端链接中断即短连接，当信息返回给客户端后中断
         ctx.writeAndFlush(Unpooled.copiedBuffer(data));//.addListener(ChannelFutureListener.CLOSE);
         System.out.println("返回给客户端: " + respStr);
@@ -95,34 +85,34 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         System.err.println("服务端读取数据完毕");
     }
 
-    // 出现异常的处理
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.err.println("server 读取数据出现异常");
-        cause.printStackTrace();
-        // 发生异常之后关键channel。随后从ChannelGroup 中移除
-        ctx.channel().close();
-        users.remove(ctx.channel());
-        ctx.close();
-    }
+//    // 出现异常的处理
+//    @Override
+//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+//        System.err.println("server 读取数据出现异常");
+//        cause.printStackTrace();
+//        // 发生异常之后关键channel。随后从ChannelGroup 中移除
+//        ctx.channel().close();
+//        users.remove(ctx.channel());
+//        ctx.close();
+//    }
 
-    /**
-     * 当客户连接服务端之后（打开链接） 获取客户端的channel，并且放到ChannelGroup中去进行管理
-     */
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        users.add(ctx.channel());
-    }
+//    /**
+//     * 当客户连接服务端之后（打开链接） 获取客户端的channel，并且放到ChannelGroup中去进行管理
+//     */
+//    @Override
+//    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+//        users.add(ctx.channel());
+//    }
 
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-
-        String channelId = ctx.channel().id().asLongText();
-        System.out.println("客户端被移除，channelId为：" + channelId);
-
-        // 当触发handlerRemoved，ChannelGroup会自动移除对应的客户端channel
-        users.remove(ctx.channel());
-    }
+//    @Override
+//    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+//
+//        String channelId = ctx.channel().id().asLongText();
+//        System.out.println("客户端被移除，channelId为：" + channelId);
+//
+//        // 当触发handlerRemoved，ChannelGroup会自动移除对应的客户端channel
+//        users.remove(ctx.channel());
+//    }
 
 
 //    /**

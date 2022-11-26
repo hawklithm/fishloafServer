@@ -1,12 +1,7 @@
 package icu.zawarudo.fishloaf.server;
 
-import icu.zawarudo.fishloaf.commons.Constants;
-import icu.zawarudo.fishloaf.handler.TCPDataHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -22,24 +17,20 @@ public class ServerNetty {
 
     private int port;
 
-    private TCPDataHandler handler;
 
-    private ServerHandler serverHandler;
-
-    public ServerNetty(int port, TCPDataHandler handler) {
+    public ServerNetty(int port) {
         this.port = port;
-        this.handler = handler;
     }
 
     // netty 服务端启动
-    public void action() throws InterruptedException {
+    public void action(final ChannelInboundHandlerAdapter serverHandler) throws InterruptedException {
 
         // 用来接收进来的连接
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         // 用来处理已经被接收的连接，一旦bossGroup接收到连接，就会把连接信息注册到workerGroup上
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        serverHandler = new ServerHandler(handler);
+//        serverHandler = new ServerHandler(handler);
 
         try {
             // nio服务的启动类
@@ -59,9 +50,9 @@ public class ServerNetty {
                             // marshalling 序列化对象的编码
 //                      socketChannel.pipeline().addLast(MarshallingCodefactory.buildEncoder());
                             // 网络超时时间
-//                      socketChannel.pipeline().addLast(new ReadTimeoutHandler(5));
-                            // 处理接收到的请求
-                            socketChannel.pipeline().addLast(serverHandler); // 这里相当于过滤器，可以配置多个
+//                            socketChannel.pipeline().addLast(new ReadTimeoutHandler(2));
+                            //编解码和业务handler
+                            socketChannel.pipeline().addLast(new MessageProtocolDecoder(), new MessageProtocolEncoder(), serverHandler);
                         }
                     });
 
@@ -80,11 +71,6 @@ public class ServerNetty {
             workerGroup.shutdownGracefully();
         }
     }
-
-    public void writeToClient(String message) {
-        serverHandler.writeToClient(message);
-    }
-
 
 
     /**
