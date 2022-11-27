@@ -3,15 +3,21 @@ package icu.zawarudo.fishloaf.server;
 import icu.zawarudo.fishloaf.commons.ProtocolUtils;
 import icu.zawarudo.fishloaf.handler.TCPDataHandler;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 处理某个客户端的请求
  *
  * @author pmx
  */
+@ChannelHandler.Sharable
 public class ServerHandler extends ChannelInboundHandlerAdapter {
+
+    private static Logger LOG = LoggerFactory.getLogger(ServerHandler.class);
 
     private TCPDataHandler handler;
 
@@ -59,7 +65,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         byte[] data = ProtocolUtils.encode(respStr);
         // 返回给客户端响应                                                                                                                                                       和客户端链接中断即短连接，当信息返回给客户端后中断
         ctx.writeAndFlush(Unpooled.copiedBuffer(data));//.addListener(ChannelFutureListener.CLOSE);
-        System.out.println("返回给客户端: " + respStr);
+        LOG.info("返回给客户端: " + respStr);
     }
 
 //    /**
