@@ -155,6 +155,12 @@ public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
     @Override
     public String onMessage(String message) {
         System.err.println("server 接收到客户端的请求： " + message);
+        BaseRequest request = JSON.parseObject(message, BaseRequest.class);
+        switch (request.getMethod()){
+            case "listUserAndGroup":
+//                core.getContactList().stream().map();
+                break;
+        }
         return new StringBuilder("来自服务器的响应").append(message).append("$_").toString();
     }
 
