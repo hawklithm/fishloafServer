@@ -6,6 +6,9 @@ import cn.zhouyafeng.itchat4j.face.IMsgHandlerFace;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import icu.zawarudo.fishloaf.commons.TraceContextUtil;
+import icu.zawarudo.fishloaf.object.ActionResult;
+import icu.zawarudo.fishloaf.object.ContactUserInfo;
 import icu.zawarudo.fishloaf.server.PushNotificationHandler;
 import icu.zawarudo.fishloaf.server.ServerHandler;
 import icu.zawarudo.fishloaf.server.ServerNetty;
@@ -14,8 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
 
@@ -152,16 +157,44 @@ public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
         return null;
     }
 
+    private ActionResult<List<ContactUserInfo>> getUsersAndGroups() {
+        List<ContactUserInfo> userInfos = core.getContactList().stream().map(a -> {
+            String userId = a.getString("UserName");
+            String nickName = a.getString("NickName");
+            String remarkName = a.getString("RemarkName");
+            ContactUserInfo info = new ContactUserInfo();
+            info.setDisplayName(StringUtils.isNotBlank(remarkName) ? remarkName : nickName);
+            info.setUniqueId(userId);
+            return info;
+        }).collect(Collectors.toList());
+
+        List<ContactUserInfo> groupInfos = core.getGroupList().stream().map(a -> {
+            String userId = a.getString("UserName");
+            String nickName = a.getString("NickName");
+            ContactUserInfo info = new ContactUserInfo();
+            info.setDisplayName(nickName);
+            info.setUniqueId(userId);
+            return info;
+        }).collect(Collectors.toList());
+        userInfos.addAll(groupInfos);
+        return ActionResult.createSuccess(userInfos);
+    }
+
     @Override
     public String onMessage(String message) {
         System.err.println("server 接收到客户端的请求： " + message);
         BaseRequest request = JSON.parseObject(message, BaseRequest.class);
-        switch (request.getMethod()){
-            case "listUserAndGroup":
-//                core.getContactList().stream().map();
-                break;
+        TraceContextUtil.setTraceId(request.getTraceId());
+        try {
+            switch (request.getMethod()) {
+                case "listUserAndGroup":
+                    return JSONObject.toJSONString(getUsersAndGroups());
+                default:
+                    return JSONObject.toJSONString(ActionResult.createError("no method match"));
+            }
+        } finally {
+            TraceContextUtil.clear();
         }
-        return new StringBuilder("来自服务器的响应").append(message).append("$_").toString();
     }
 
     @Override

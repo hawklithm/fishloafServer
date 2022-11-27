@@ -54,7 +54,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @param msg
      */
     public void simpleRead(ChannelHandlerContext ctx, Object msg) {
-
         String reqStr = (String) msg;
         String respStr = handler.onMessage(reqStr);
         byte[] data = ProtocolUtils.encode(respStr);
