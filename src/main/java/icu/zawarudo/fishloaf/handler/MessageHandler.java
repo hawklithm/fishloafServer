@@ -186,12 +186,16 @@ public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
         BaseRequest request = JSON.parseObject(message, BaseRequest.class);
         TraceContextUtil.setTraceId(request.getTraceId());
         try {
+            ActionResult<?> result;
             switch (request.getMethod()) {
                 case "listUserAndGroup":
-                    return JSONObject.toJSONString(getUsersAndGroups());
+                    result = getUsersAndGroups();
+                    break;
                 default:
-                    return JSONObject.toJSONString(ActionResult.createError("no method match"));
+                    result = ActionResult.createError("no method match");
             }
+            result.setMethod(request.getMethod());
+            return JSONObject.toJSONString(result);
         } finally {
             TraceContextUtil.clear();
         }
