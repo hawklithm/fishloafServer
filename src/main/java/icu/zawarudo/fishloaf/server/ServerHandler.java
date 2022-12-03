@@ -54,12 +54,16 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @param msg
      */
     public void simpleRead(ChannelHandlerContext ctx, Object msg) {
-        String reqStr = (String) msg;
-        String respStr = handler.onMessage(reqStr);
-        byte[] data = ProtocolUtils.encode(respStr);
-        // 返回给客户端响应                                                                                                                                                       和客户端链接中断即短连接，当信息返回给客户端后中断
-        ctx.writeAndFlush(Unpooled.copiedBuffer(data));//.addListener(ChannelFutureListener.CLOSE);
-        LOG.info("返回给客户端: " + respStr);
+        try {
+            String reqStr = (String) msg;
+            String respStr = handler.onMessage(reqStr);
+            byte[] data = ProtocolUtils.encode(respStr);
+            // 返回给客户端响应                                                                                                                                                       和客户端链接中断即短连接，当信息返回给客户端后中断
+            ctx.writeAndFlush(Unpooled.copiedBuffer(data));//.addListener(ChannelFutureListener.CLOSE);
+            LOG.info("返回给客户端: " + respStr);
+        } catch (Throwable e) {
+            LOG.error("message delivery exception!", e);
+        }
     }
 
 //    /**

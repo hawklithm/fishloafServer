@@ -19,7 +19,7 @@ public class ProtocolUtils {
         int data = 0;
         for (int i = magic.length; i < magic.length + 4; i++) {
             data <<= 8;
-            data += message[i];
+            data += message[i] & 0xff;
         }
         return message.length == magic.length + 4 + data;
     }
@@ -28,7 +28,7 @@ public class ProtocolUtils {
         int dataLength = 0;
         for (int i = magic.length; i < magic.length + 4; i++) {
             dataLength <<= 8;
-            dataLength += message[i];
+            dataLength += message[i] & 0xff;
         }
         byte[] retData = new byte[dataLength];
         System.arraycopy(message, magic.length + 4, retData, 0, dataLength);
