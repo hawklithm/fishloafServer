@@ -1,5 +1,6 @@
 package icu.zawarudo.fishloaf.handler;
 
+import cn.zhouyafeng.itchat4j.api.MessageTools;
 import cn.zhouyafeng.itchat4j.beans.BaseMsg;
 import cn.zhouyafeng.itchat4j.core.Core;
 import cn.zhouyafeng.itchat4j.face.IMsgHandlerFace;
@@ -190,6 +191,11 @@ public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
             switch (request.getMethod()) {
                 case "listUserAndGroup":
                     result = getUsersAndGroups();
+                    break;
+                case "sendChatMessage":
+                    MessageSendRequest sendRequest = JSON.parseObject(message, MessageSendRequest.class);
+                    MessageTools.sendMsgById(sendRequest.getMessage(), sendRequest.getTargetId());
+                    result = ActionResult.createSuccess(true);
                     break;
                 default:
                     result = ActionResult.createError("no method match");
