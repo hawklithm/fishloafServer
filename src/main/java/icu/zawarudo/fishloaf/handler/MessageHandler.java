@@ -83,6 +83,7 @@ public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
             messageMap.put("displayName", core.getNickName());
             messageMap.put("echo", true);
             sendMessage(JSON.toJSONString(messageMap));
+            return null;
         }
         if (!baseMsg.isGroupMsg()) {
             messageMap.put("text", baseMsg.getText());
