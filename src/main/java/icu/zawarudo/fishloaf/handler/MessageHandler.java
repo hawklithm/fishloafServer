@@ -77,8 +77,12 @@ public class MessageHandler implements IMsgHandlerFace, TCPDataHandler {
         LOG.info(JSON.toJSONString(baseMsg));
         Map<String, Object> messageMap = new HashMap<>();
         if (core.getUserName().equals(baseMsg.getFromUserName())) {
-            //message from yourself, ignore
-            return null;
+            //message from yourself, echo
+            messageMap.put("text", baseMsg.getText());
+            messageMap.put("userId", baseMsg.getToUserName());
+            messageMap.put("displayName", core.getNickName());
+            messageMap.put("echo", true);
+            sendMessage(JSON.toJSONString(messageMap));
         }
         if (!baseMsg.isGroupMsg()) {
             messageMap.put("text", baseMsg.getText());
